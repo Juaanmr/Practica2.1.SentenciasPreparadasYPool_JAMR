@@ -15,67 +15,116 @@ import oracle.ucp.jdbc.PoolDataSourceFactory;
  */
 public class ConexionBDEx {
 
-    //Datos de conexion a la base de datos
+    //Datos de conn a la base de datos
     /*static final String DB_URL = "jdbc:mysql://127.0.0.1:3306/jcvd";
     static final String USER = "juan";
     static final String PASS = "1234";*/
+    
+    static PoolDataSource pds;
 
     public static void main(String[] args) {
         
         try {
             //Crea la instancia con el pool
-            PoolDataSource pds = PoolDataSourceFactory.getPoolDataSource();
+            pds = PoolDataSourceFactory.getPoolDataSource();
             
-            //introduce las condiciones de la conexion
+            //introduce las condiciones de la conn
             pds.setConnectionFactoryClassName("oracle.jdbc.pool.OracleDataSource");
-            pds.setURL("jdbc:mysql://127.0.0.1:3306/jcvd");
+            pds.setURL("jdbc:mysql://loclahost:3306/jcvd");
             pds.setUser("juan");
             pds.setPassword("1234");
+            
             pds.setInitialPoolSize(5);
             
-            //obtener la conexion con la base de datos
-            Connection conn = pds.getConnection();
-            
-            System.out.println("\nConnection obtained from UniversalConnectionPool\n");
-            
-            //se ejecuta las operaciones con las bases de datos
-            Statement stmt = conn.createStatement();
-            stmt.execute("SELECT * FROM foo");
-            
-            //se cierra la conexion
-            conn.close();
-            conn=null;
-            
-            System.out.println("\nConnection retutned from UniversalConnectionPool\n");
+            Scanner sc = new Scanner(System.in);
+            int opcion;
+            //Abre la conexión
+            try (Connection conn = pds.getConnection(); 
+                    Statement stmt = conn.createStatement();) {
+
+                System.out.println("\tElige una opción:");
+                System.out.println("\n\tConexionBD");
+                System.out.println("1 - Buscar nombre por teclado");
+                System.out.println("2 - Lanza consulta SELECT * FROM videojuegos");
+                System.out.println("3 - Añadir un nuevo registro por Parametro");
+                System.out.println("4 - Añadir un nuevo registro por Teclado");
+                System.out.println("5 - Eliminar un juego por teclado");
+                
+                System.out.println("\n\tConexionBDEx");
+                System.out.println("6 - Buscar un videojuego");
+                System.out.println("7 - Añadir un nuevo registro por Parametro");
+                System.out.println("8 - Añadir un nuevo registro por Teclado");
+                
+                opcion = sc.nextInt();
+
+                switch(opcion){
+                    case 1: 
+                        System.out.println("Introduce el nombre del videojuego");
+                        String buscarNombre = sc.next();
+                        System.out.println(buscarNombre(buscarNombre));
+                        break;
+
+
+                    case 2:
+                        lanzaConsulta("SELECT * FROM videojuegos");
+                        break;
+                    case 3:
+                        nuevoRegistroParametro("C:S", "Shooter", "2023-11-24", "Steam", 00.00);
+                        break;
+                    case 4:
+                        nuevoRegistroTeclado();
+                        break;
+                    case 5:
+                        System.out.println("Introduzca el nombre del Videojuego: ");
+                        String eliminarNombre = sc.nextLine();
+                        eliminarRegistro(eliminarNombre);
+                        break;
+
+                        /*ConexionBDEx*/
+                        
+                    case 6:
+                        lanzarConsultaV2();
+                        break;
+                    case 7:
+                        nuevoRegistroParametroV2();
+                        break;
+                    case 8:
+                        nuevoRegistroTecladoV2();
+                        break;
+                }
+
+                conn.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
             
         } catch (Exception e) {
             e.printStackTrace();
         }
         
         
-        try {
-            //System.out.println(buscarNombre("Valorant"));
-            //buscarNombreV2();
-            //System.out.println(lanzaConsulta("SELECT * FROM videojuegos"));
-            //lanzarConsultaV2();
-            //nuevoRegistroParametro("C:S", "Shooter", "2023-11-24", "Steam", 00.00);
-            //nuevoRegistroParametroV2();
-            //nuevoRegistroTeclado();
-            //nuevoRegistroTecladoV2();
-            //System.out.println(eliminarRegistro("Valorant"));
-            //System.out.println(eliminarRegistroV2("Batman"));
+        /*try {
+            System.out.println(buscarNombre("Juan"));
+            System.out.println(lanzaConsulta("SELECT * FROM videojuegos"));
+            lanzarConsultaV2();
+            nuevoRegistroParametro("C:S", "Shooter", "2023-11-24", "Steam", 00.00);
+            nuevoRegistroParametroV2();
+            nuevoRegistroTeclado();
+            nuevoRegistroTecladoV2();
+            System.out.println(eliminarRegistro("Valorant"));
+            System.out.println(eliminarRegistroV2("Batman"));
 
         } catch (Exception e) {
             e.printStackTrace();
-        }
+        }*/
     }
 
-    private static boolean buscarNombre(String nombre) {
-        String consulta = "SELECT *FROM videojuegos WHERE Nombre = '" + nombre + "'";
+    public static boolean buscarNombre(String nombre) {
+        String Query = "SELECT *FROM videojuegos WHERE Nombre = '" + nombre + "'";
 
-        try (Connection conn = DriverManager.getConnection(DB_URL, USER, PASS); 
+        try (Connection conn = pds.getConnection(); 
                 Statement stmt = conn.createStatement(); 
-                ResultSet rs = stmt.executeQuery(consulta);) {
+                ResultSet rs = stmt.executeQuery(Query);) {
 
             boolean existe = false;
 
@@ -88,35 +137,15 @@ public class ConexionBDEx {
 
             conn.close();
             return existe;
-        } catch (Exception e) {
+        } catch (SQLException e) {
             e.printStackTrace();
             return false;
         }
     }
 
-    public static void buscarNombreV2() {
-        String nombreABuscar = "asd";
-        String consulta = "SELECT * FROM videojuegos WHERE Nombre = ?";
-
-        try {
-            Connection conn = DriverManager.getConnection(DB_URL, USER, PASS);
-            PreparedStatement sentencia = conn.prepareStatement(consulta);
-            sentencia.setString(1, nombreABuscar);
-            ResultSet rs = sentencia.executeQuery();
-
-            boolean existe = rs.next();
-
-            conn.close();
-
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
     public static String lanzaConsulta(String consulta) {
 
-        try (Connection conn = DriverManager.getConnection(DB_URL, USER, PASS); 
+        try (Connection conn = pds.getConnection(); 
                 Statement stmt = conn.createStatement(); 
                 ResultSet rs = stmt.executeQuery(consulta)) {
 
@@ -146,58 +175,17 @@ public class ConexionBDEx {
 
             return resultado.toString();
 
-        } catch (Exception e) {
+        } catch (SQLException e) {
             e.printStackTrace();
             return "error";
         }
-    }
-
-    public static void lanzarConsultaV2() throws SQLException {
-
-        String consulta = "SELECT * FROM videojuegos where Nombre = ?";
-
-        try {
-            Connection conn = DriverManager.getConnection(DB_URL, USER, PASS);
-            Statement stmt = conn.createStatement();
-            PreparedStatement sentencia = conn.prepareStatement(consulta);
-            sentencia.setString(1, "Juan");
-            ResultSet rs = sentencia.executeQuery();
-
-            while (rs.next()) {
-                System.out.print("EL ID es : " + rs.getInt("id"));
-                System.out.print(", EL Nombre es : " + rs.getString("Nombre"));
-                System.out.print(", EL Genere es : " + rs.getString("Genero"));
-                System.out.print(", la Fecha de Lanzamiento es : " + rs.getDate("FechaLanzamiento"));
-                System.out.print(", La Compañia es : " + rs.getString("Compañia"));
-                System.out.println(", EL Precio es : " + rs.getFloat("Precio"));
-            }
-
-            ResultSetMetaData meta = rs.getMetaData();
-            int colum = meta.getColumnCount();
-
-            StringBuilder resultado = new StringBuilder();
-
-            while (rs.next()) {
-                for (int i = 1; i <= colum; i++) {
-                    String valor = rs.getString(i);
-                    resultado.append(meta.getColumnName(i)).append(": ").append(valor).append("\t");
-                }
-                resultado.append("\n");
-            }
-
-            conn.close();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
     }
 
     public static void nuevoRegistroParametro(String Nombre, String Genero, String FechaLanzamiento, String Compañia, double Precio) {
         String Query = "INSERT INTO `videojuegos` (`Nombre`, `Genero`, `FechaLanzamiento`, `Compañia`, `Precio`) "
                 + "VALUES ('" + Nombre + "', '" + Genero + "', '" + FechaLanzamiento + "', '" + Compañia + "', " + Precio + ")";
 
-        try (Connection conn = DriverManager.getConnection(DB_URL, USER, PASS); 
+        try (Connection conn = pds.getConnection();  
                 Statement stmt = conn.createStatement();) {
 
             stmt.executeUpdate(Query);
@@ -205,31 +193,7 @@ public class ConexionBDEx {
 
             conn.close();
 
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-    
-    public static void nuevoRegistroParametroV2() throws SQLException {
-        Connection conn = DriverManager.getConnection(DB_URL, USER, PASS);
-        try {
-            PreparedStatement sentencia = conn.prepareStatement("INSERT INTO videojuegos values (NULL, ?, ?, ?, ?, ?)",
-                    PreparedStatement.RETURN_GENERATED_KEYS);
-            sentencia.setString(1, "prueba");
-            sentencia.setString(2, "shooter");
-            sentencia.setString(3, "2007-04-11");
-            sentencia.setString(4, "Steam");
-            sentencia.setFloat(5, 15);
-            
-            sentencia.executeUpdate();
-            ResultSet rs = sentencia.getGeneratedKeys();
-            while (rs.next()) {
-                int claveGuardada = rs.getInt(1);
-                System.out.println("Clave guardada = " + claveGuardada);
-            }
-            
-            conn.close();
-        } catch (Exception e) {
+        } catch (SQLException e) {
             e.printStackTrace();
         }
     }
@@ -240,7 +204,7 @@ public class ConexionBDEx {
         String Nombre, Genero, FechaLanzamiento, Compañia;
         float Precio;
 
-        try (Connection conn = DriverManager.getConnection(DB_URL, USER, PASS); 
+        try (Connection conn = pds.getConnection(); 
                 Statement stmt = conn.createStatement();) {
 
             System.out.println("Añade un nuevo videojuego: ");
@@ -267,15 +231,95 @@ public class ConexionBDEx {
             e.printStackTrace();
         }
     }
+
+    public static boolean eliminarRegistro(String nombre) {
+        String delQuery = "DELETE FROM videojuegos WHERE Nombre = '" + nombre + "'";
+
+        if (buscarNombre(nombre)) {
+            try (Connection conn = pds.getConnection(); 
+                    Statement stmt = conn.createStatement();) {
+
+                stmt.executeUpdate(delQuery);
+
+                conn.close();
+                return true;
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            }
+        } else {
+            System.out.println("El videojuego introducido no existe en la base");
+            return false;
+        }
+    }
+
     
-    public static void nuevoRegistroTecladoV2() {
+    /*ConexionBDEx*/
+    
+    
+    public static void lanzarConsultaV2() throws SQLException {
+        String Query = "SELECT * FROM `videojuegos` WHERE nombre = ? ";
+        
+        Connection conn = pds.getConnection();
+        try {
+            PreparedStatement sentencia = conn.prepareStatement (Query);
+            sentencia.setString(1, "Mario Bors");
+            ResultSet rs = sentencia.executeQuery();
+            while (rs.next()) {
+                System.out.print("EL ID es : " + rs.getInt("id"));
+                System.out.print(", EL Nombre es : " + rs.getString("Nombre"));
+                System.out.print(", EL Genere es : " + rs.getString("Genero"));
+                System.out.print(", la Fecha de Lanzamiento es : " + rs.getDate("FechaLanzamiento"));
+                System.out.print(", La Compañia es : " + rs.getString("Compañia"));
+                System.out.println(", EL Precio es : " + rs.getFloat("Precio"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            if (conn != null) {
+                conn.close();
+            }
+        }
+    }
+    
+    public static void nuevoRegistroParametroV2() throws SQLException {
+        Connection conn = pds.getConnection(); 
+        try {
+            PreparedStatement sentencia = conn.prepareStatement("INSERT INTO videojuegos values (NULL, ?, ?, ?, ?, ?)",
+                    PreparedStatement.RETURN_GENERATED_KEYS);
+            sentencia.setString(1, "prueba");
+            sentencia.setString(2, "shooter");
+            sentencia.setString(3, "2007-04-11");
+            sentencia.setString(4, "Steam");
+            sentencia.setFloat(5, 15);
+            
+            sentencia.executeUpdate();
+            ResultSet rs = sentencia.getGeneratedKeys();
+            while (rs.next()) {
+                int claveGuardada = rs.getInt(1);
+                System.out.println("Clave guardada = " + claveGuardada);
+            }
+            
+            conn.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }finally{
+            if (conn != null) {
+                conn.close();
+            }
+        }
+    }
+    
+    public static void nuevoRegistroTecladoV2() throws SQLException {
         Scanner sc = new Scanner(System.in);
 
         String Nombre, Genero, FechaLanzamiento, Compañia;
         float Precio;
+        
+        Connection conn = pds.getConnection(); 
 
         try {
-            Connection conn = DriverManager.getConnection(DB_URL, USER, PASS);
             PreparedStatement sentencia = conn.prepareStatement("INSERT INTO videojuegos values (NULL, ?, ?, ?, ?, ?)",
                     PreparedStatement.RETURN_GENERATED_KEYS);
 
@@ -300,57 +344,38 @@ public class ConexionBDEx {
             
             System.out.println("\n\tvideojuego insertado");
 
-            conn.close();
 
         } catch (SQLException e) {
             e.printStackTrace();
-        }
-    }
-
-    public static boolean eliminarRegistro(String nombre) {
-        String delQuery = "DELETE FROM videojuegos WHERE Nombre = '" + nombre + "'";
-
-        if (buscarNombre(nombre)) {
-            try (Connection conn = DriverManager.getConnection(DB_URL, USER, PASS); 
-                    Statement stmt = conn.createStatement();) {
-
-                stmt.executeUpdate(delQuery);
-
+        } finally{
+            if (conn != null) {
                 conn.close();
-                return true;
-
-            } catch (Exception e) {
-                e.printStackTrace();
-                return false;
             }
-        } else {
-            System.out.println("El videojuego introducido no existe en la base");
-            return false;
         }
     }
-
-    public static void eliminarRegistroV2(String nombre) {
-        String delQuery = "DELETE FROM videojuegos WHERE Nombre = ?";
-
-        if (buscarNombre(nombre)) {
-            try {
-                Connection conn = DriverManager.getConnection(DB_URL, USER, PASS);
-                Statement stmt = conn.createStatement();
-                PreparedStatement sentencia = conn.prepareStatement(delQuery);
-                sentencia.setString(1, "asd");
-                ResultSet rs = sentencia.executeQuery();
-
-                stmt.executeUpdate(delQuery);
-
-                conn.close();
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        } else {
-            System.out.println("El videojuego introducido no existe en la base");
-        }
-    }
-
     
+    public static void eliminarRegistroV2(String nombre) throws SQLException {
+        String delQuery = "DELETE * FROM `videojuegos` WHERE nombre = ? ";
+        
+        Connection conn = pds.getConnection();
+        try {
+            PreparedStatement sentencia = conn.prepareStatement (delQuery);
+            sentencia.setString(1, "Mario Bors");
+            ResultSet rs = sentencia.executeQuery();
+            while (rs.next()) {
+                System.out.print("EL ID es : " + rs.getInt("id"));
+                System.out.print(", EL Nombre es : " + rs.getString("Nombre"));
+                System.out.print(", EL Genere es : " + rs.getString("Genero"));
+                System.out.print(", la Fecha de Lanzamiento es : " + rs.getDate("FechaLanzamiento"));
+                System.out.print(", La Compañia es : " + rs.getString("Compañia"));
+                System.out.println(", EL Precio es : " + rs.getFloat("Precio"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            if (conn != null) {
+                conn.close();
+            }
+        }
+    }
 }
