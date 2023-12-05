@@ -164,7 +164,7 @@ public class ConexionBDEx {
     /**
      * lanza la consulta que le paso por parametro
      * @param consulta variable donde se guarda la consulta
-     * @return 
+     * @return devuelve el resultado de la consulta
      */
     public static String lanzaConsulta(String consulta) {
         //hago la conexion con la base de datos y ejecuto la consulta
@@ -285,7 +285,7 @@ public class ConexionBDEx {
     /**
      * elimina un videojuego
      * @param nombre variable donde se introduce el nombre del juego que se quiere eliminar
-     * @return 
+     * @return true si el juego ha sido eliminado o false si no ha sido eliminado
      */
     public static boolean eliminarRegistro(String nombre) {
         //consulta para eliminar el juego qu emete el usuario por teclaod
@@ -312,7 +312,7 @@ public class ConexionBDEx {
                 return false;
             }
         } else {
-            //si le videojuego no existe en la base de datos impirmoeste mensaje 
+            //si le videojuego no existe en la base de datos imprime este mensaje 
             System.out.println("El videojuego introducido no existe en la base");
             //el programa me devuelve este mensaje para indicarme que el videojuego no existe y por lo tanto no lo puede eliminar
             return false;
