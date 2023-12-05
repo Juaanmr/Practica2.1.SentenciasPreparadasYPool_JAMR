@@ -19,9 +19,15 @@
         </dependency>
         <dependency>
             <groupId>com.oracle.database.jdbc</groupId>
-            <artifactId>ucp</artifactId>
-            <version>23.3.0.23.09</version>
+            <artifactId>ojdbc8</artifactId>
+            <version>19.6.0.0</version>
         </dependency>
+        <dependency>
+            <groupId>com.oracle.database.jdbc</groupId>
+            <artifactId>ucp</artifactId>
+            <version>19.6.0.0</version>
+        </dependency>
+        
     </dependencies>
     <name>ConexionBDEx</name>
 </project>
